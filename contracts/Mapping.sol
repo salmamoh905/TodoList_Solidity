@@ -1,38 +1,49 @@
 // SPDX-License-Identifier:
 pragma solidity ^0.8.0;
 
-contract MyConctract {
-  //Mappings
+///smart contract for booking hotel rooms
 
-  mapping(uint => string) names;
-  mapping (uint => Book) public books;
-//nested mapping 
-mapping(address => mapping(uint => Book))public myBooks;
+contract HotelRoom{
+    //Ether payments
+    //Modifiers
+    //Visisbility
+    //Events
+    //Enum
 
-    struct Book{
-        string title;
-        string author;
+    //creating enum
+    enum Statuses{ Vacant, Occupied}
+    Statuses currentStatus;
+    //create the payble address
+    address payable public owner;
+    //a constructor to assign the sender to the owner
+
+    //Events
+    event occupy (address _occupant, uint _value);
+
+    constructor () public {
+        owner = msg.sender;
+        currentStatus = Statuses.Vacant;
     }
 
-  constructor () public{
-    names[1] = 'salma';
-    names[2] = 'john';
-    names[3] = 'susan';
+    //modifiers
+    modifier onlyWhileVacant{
+        require (currentStatus == Statuses.Vacant, 'Currently Occupied');
+        _;
+    }
+    modifier costs(uint _amount){
+        require(msg.value >= _amount, 'Not enough ether provided');
+        _;
+      
+    }
+    function book () payable public onlyWhileVacant() costs(2 ether) {
+        //sending the ether: modifiers
+        
+        currentStatus = Statuses.Occupied;
+       // owner.transfer(msg.value);
 
-  }
+        (bool sent, bytes memory data) = owner.call{value: msg.value}('');
+        require (true);
 
-  function addBook (uint _id,
-   string memory _author,
-    string memory _title ) public{
-    books[_id] = Book(_author,_title);
-
-  }
-  //nested mappings
-  function addMyBook (uint _id,
-   string memory _author,
-    string memory _title ) public{
-   myBooks[msg.sender][_id]= Book(_title,_author);
-
-  }
-
+        emit occupy(msg.sender, msg.value);
+    }
 }
